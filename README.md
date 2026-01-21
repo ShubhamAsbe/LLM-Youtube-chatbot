@@ -1,0 +1,1 @@
+This project is a for playing with LLM
