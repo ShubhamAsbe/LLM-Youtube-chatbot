@@ -1,7 +1,6 @@
 import streamlit as st
 import sys
 import os
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.extract_video_id import extract_youtube_video_id
 from utils.generate_transcript import fetch_video_transcript

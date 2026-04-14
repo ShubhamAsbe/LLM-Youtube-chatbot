@@ -2,8 +2,9 @@ from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
 
 
 def fetch_video_transcript(video_id):
+    ytt_api = YouTubeTranscriptApi()
     try:
-        fetched_transcript = YouTubeTranscriptApi().fetch(video_id, languages=['en'])
+        fetched_transcript = ytt_api.fetch(video_id, languages=['en'])
         transcript_list = fetched_transcript.to_raw_data()
         transcript = " ".join(chunk["text"] for chunk in transcript_list)
         return transcript
