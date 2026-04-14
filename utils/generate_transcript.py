@@ -13,3 +13,7 @@ def fetch_video_transcript(video_id):
         return None
     except Exception as e:
         raise RuntimeError(f"Transcript fetch failed: {e}")
+    
+def clean_transcript(transcript):
+    cleaned_transcript = transcript.replace("\n", " ").strip()
+    return cleaned_transcript

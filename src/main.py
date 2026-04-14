@@ -22,7 +22,7 @@ def show_main():
 
     # Initialize chat history
     if "messages" not in st.session_state:
-        st.session_state.messages = []
+        st.session_state['messages'] = []
 
     # Optionally show the YouTube URL if present
     utube_url = st.session_state.get("utube_url", None)
@@ -44,8 +44,17 @@ def show_main():
         
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
-            response = client.invoke(st.session_state.messages)
-            st.markdown(response.content)
-        # Add assistant response to chat history
-        st.session_state.messages.append({"role": "assistant", "content": response.content})
+            response_placeholder = st.empty()
+            full_response = ""
+
+            for chunk in client.stream(st.session_state.messages):
+                if chunk.content:
+                    full_response += chunk.content
+                    response_placeholder.markdown(full_response)
+
+        # Save final response
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": full_response
+        })
         
