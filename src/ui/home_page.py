@@ -11,7 +11,7 @@ def render():
     if url:
         st.session_state["utube_url"] = url
         video_id = extract_video_id(url)
-        vector_service = VectorStoreService().get_vector_store()
+        vector_service = VectorStoreService()
         db = vector_service.get_vector_store()
 
         if video_id:
