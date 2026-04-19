@@ -6,7 +6,7 @@ DB_PATH = PROJECT_ROOT / "db"
 
 # Model configurations
 OLLAMA_MODEL = "llama3.2:latest"
-EMBEDDING_MODEL = "nomic-embed-text"
+EMBEDDING_MODEL = "nomic-embed-text:latest"
 
 # Vector DB settings
 COLLECTION_NAME = "sample"
