@@ -15,10 +15,19 @@ class VectorStoreService:
             chunk_overlap=CHUNK_OVERLAP,
             separators=SEPARATORS
         )
+
+    def get_vector_store(self):
+        return Chroma(
+            collection_name=COLLECTION_NAME,
+            persist_directory=str(DB_PATH),
+            embedding_function=self.embeddings
+        )
     
-    def create_embeddings(self, text: str) -> str:
+    def create_embeddings(self, text: str, video_id: str, url: str) -> str:
         chunks = self.text_splitter.split_text(text)
-        docs = [Document(page_content=chunk) for chunk in chunks]
+        docs = [Document(page_content=chunk, metadata={
+            "video_id": video_id,
+            "url": url}) for chunk in chunks]
         Chroma.from_documents(
             documents=docs,
             collection_name=COLLECTION_NAME,
@@ -27,10 +36,13 @@ class VectorStoreService:
         )
         return "Embeddings stored successfully!"
     
-    def get_retriever(self, k: int = 3):
-        db = Chroma(
-            collection_name=COLLECTION_NAME,
-            persist_directory=str(DB_PATH),
-            embedding_function=self.embeddings
+    def get_retriever(self, video_id: str, k: int = 3):
+        db = self.get_vector_store()
+        return db.as_retriever(
+            search_type="mmr", 
+            search_kwargs={
+                "k": k, 
+                "fetch_k": 10, 
+                "filter":{"video_id": video_id}
+            }
         )
-        return db.as_retriever(search_kwargs={"k": k})

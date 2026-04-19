@@ -1,5 +1,5 @@
 from langchain_ollama import ChatOllama
-from langchain_core.messages import HumanMessage
+from langchain.messages import HumanMessage, SystemMessage
 from src.core.config import OLLAMA_MODEL
 
 class LLMService:
@@ -7,21 +7,36 @@ class LLMService:
         self.model = ChatOllama(model=model)
     
     def stream_response(self, prompt: str):
-        return self.model.stream([HumanMessage(content=prompt)])
+        return self.model.stream([SystemMessage(content="You are a helpful assistant"),HumanMessage(content=prompt)])
     
     @staticmethod
-    def build_prompt(query: str, context: str) -> str:
+    def build_prompt(query: str, context: str, chat_history: str) -> str:
         return f"""
-        You are a helpful assistant.
-        Answer ONLY from the provided context. If user ask summarize the video then 
-        summarize video.
-        If answer is not available, say "Not available in video".
+        You are an AI assistant specialized in answering questions about a video.
 
-        Context:
+        ### Instructions:
+        - Use ONLY the provided CONTEXT to answer the question.
+        - Use CHAT HISTORY only to understand the conversation flow and resolve references (e.g., "this", "that", follow-ups).
+        - Do NOT rely on prior knowledge outside the given CONTEXT.
+        - If the answer is not explicitly present in the CONTEXT, respond exactly with:
+        "Your question is out of context please ask the valid question".
+
+        ### Response Rules:
+        - Be precise and concise.
+        - Do not hallucinate or assume information.
+        - Do not repeat the question.
+        - Do not mention "context" or "chat history" in your answer.
+
+        ---
+
+        ### CHAT HISTORY:
+        {chat_history}
+        ---
+        ### CONTEXT:
         {context}
-
-        Question:
+        ---
+        ### QUESTION:
         {query}
-
-        Answer:
+        ---
+        ### ANSWER:
         """

@@ -11,6 +11,8 @@ def render():
     if url:
         st.session_state["utube_url"] = url
         video_id = extract_video_id(url)
+        vector_service = VectorStoreService().get_vector_store()
+        db = vector_service.get_vector_store()
 
         if video_id:
             try:
@@ -18,12 +20,16 @@ def render():
                 st.session_state["video_id"] = video_id
                 
                 with st.spinner("Fetching transcript..."):
-                    transcript = fetch_transcript(video_id)
+                    transcript = fetch_transcript(db, video_id)
                     st.session_state["video_transcript"] = transcript
                 
+                if transcript == "exist":
+                    st.warning("This video has already been indexed. Redirecting to chat...")
+                    st.session_state["page"] = "chat"
+                    st.rerun()
+                
                 with st.spinner("Creating embeddings..."):
-                    vector_service = VectorStoreService()
-                    msg = vector_service.create_embeddings(transcript)
+                    msg = vector_service.create_embeddings(transcript, video_id, url)
                     st.success(msg)
                 
                 st.session_state["page"] = "chat"
