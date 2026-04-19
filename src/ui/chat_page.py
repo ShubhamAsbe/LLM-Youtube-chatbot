@@ -1,6 +1,7 @@
 import streamlit as st
 from src.services.llm import LLMService
 from src.services.vector_store import VectorStoreService
+from langchain.messages import HumanMessage, AIMessage
 
 def render():
     st.title("Chat with Video")
@@ -19,6 +20,9 @@ def render():
     if "messages" not in st.session_state:
         st.session_state["messages"] = []
 
+    if "lc_messages" not in st.session_state:
+        st.session_state.lc_messages = []
+
     if url := st.session_state.get("utube_url"):
         st.info(f"📺 {url}")
 
@@ -28,13 +32,18 @@ def render():
 
     if prompt := st.chat_input("Ask a question about the video..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
+        st.session_state.lc_messages.append(HumanMessage(content=prompt))
         with st.chat_message("user"):
             st.markdown(prompt)
-
-        retriever = vector_service.get_retriever()
+        video_id = st.session_state.get("video_id")
+        retriever = vector_service.get_retriever(video_id=video_id)
         docs = retriever.invoke(prompt)
         context = "\n\n".join([doc.page_content for doc in docs]) if docs else "No relevant context found."
-        final_prompt = LLMService.build_prompt(prompt, context)
+        chat_history = "\n".join([
+            f"User: {msg.content}" if msg.type == "human" else f"Assistant: {msg.content}"
+            for msg in st.session_state.lc_messages
+        ])
+        final_prompt = LLMService.build_prompt(prompt, context, chat_history)
         
         with st.chat_message("assistant"):
             response_placeholder = st.empty()
@@ -46,3 +55,4 @@ def render():
                     response_placeholder.markdown(full_response)
 
         st.session_state.messages.append({"role": "assistant", "content": full_response})
+        st.session_state.lc_messages.append(AIMessage(content=full_response))
